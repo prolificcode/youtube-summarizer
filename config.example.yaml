@@ -1,0 +1,210 @@
+# YouTube Summarizer Configuration (YAML format)
+#
+# NOTE: YAML configuration support is planned for future versions.
+# Currently, the application uses environment variables and .env files.
+# This file serves as documentation and a template for future YAML support.
+#
+# To use configuration now, please use .env file or environment variables
+# with the YTS_ prefix (see .env.example for details).
+
+# ============================================================================
+# Ollama Configuration
+# ============================================================================
+ollama:
+  # URL of the Ollama API server
+  host: http://localhost:11434
+
+  # Default model to use for summarization
+  # Popular options: llama3.1:8b, llama3.1:70b, mistral, mixtral
+  default_model: llama3.1:8b
+
+  # Timeout for API requests in seconds
+  timeout: 300
+
+# ============================================================================
+# Database Configuration
+# ============================================================================
+database:
+  # Path to SQLite database file (relative or absolute)
+  path: ./data/summaries.db
+
+# ============================================================================
+# Summarization Settings
+# ============================================================================
+summarization:
+  # Maximum tokens to generate for summaries (50-4096)
+  # Higher values = longer, more detailed summaries
+  max_length: 500
+
+  # Temperature parameter for LLM generation (0.0-2.0)
+  # Lower values = more focused and deterministic
+  # Higher values = more creative and varied
+  temperature: 0.7
+
+# ============================================================================
+# Transcript Settings
+# ============================================================================
+transcript:
+  # Preferred languages for transcripts (ISO 639-1 codes)
+  # The tool will try to fetch transcripts in these languages in order
+  preferred_languages:
+    - en
+
+  # Example: Multi-language support
+  # preferred_languages:
+  #   - en  # English
+  #   - es  # Spanish
+  #   - fr  # French
+  #   - de  # German
+
+# ============================================================================
+# Logging Configuration
+# ============================================================================
+logging:
+  # Logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  level: INFO
+
+  # Path to log file (null to disable file logging)
+  file: ./data/app.log
+
+# ============================================================================
+# CLI Output Configuration
+# ============================================================================
+output:
+  # Output format: rich (colored, formatted) or plain (simple text)
+  format: rich
+
+# ============================================================================
+# Example Configurations for Different Scenarios
+# ============================================================================
+
+# --- Development Configuration ---
+# development:
+#   ollama:
+#     host: http://localhost:11434
+#     default_model: llama3.1:8b
+#     timeout: 300
+#   database:
+#     path: ./data/summaries.db
+#   logging:
+#     level: DEBUG
+#     file: ./data/app.log
+#   output:
+#     format: rich
+
+# --- Production Configuration ---
+# production:
+#   ollama:
+#     host: http://ollama-server:11434
+#     default_model: llama3.1:70b
+#     timeout: 600
+#   database:
+#     path: /var/lib/youtube_summarizer/summaries.db
+#   summarization:
+#     max_length: 800
+#     temperature: 0.7
+#   logging:
+#     level: WARNING
+#     file: /var/log/youtube_summarizer/app.log
+#   output:
+#     format: plain
+
+# --- Docker Configuration ---
+# docker:
+#   ollama:
+#     host: http://ollama:11434  # Container name from docker-compose
+#     default_model: llama3.1:8b
+#     timeout: 300
+#   database:
+#     path: /app/data/summaries.db  # Mounted volume
+#   logging:
+#     level: INFO
+#     file: /app/data/app.log  # Mounted volume
+#   output:
+#     format: rich
+
+# --- Long-form Detailed Summaries ---
+# detailed:
+#   ollama:
+#     host: http://localhost:11434
+#     default_model: llama3.1:70b  # Larger model for better quality
+#     timeout: 600  # Longer timeout for larger model
+#   summarization:
+#     max_length: 1500  # Longer summaries
+#     temperature: 0.8  # More creative
+
+# --- Quick Concise Summaries ---
+# concise:
+#   ollama:
+#     host: http://localhost:11434
+#     default_model: llama3.1:8b
+#     timeout: 300
+#   summarization:
+#     max_length: 200  # Short summaries
+#     temperature: 0.5  # More focused
+
+# --- Multi-language Support ---
+# multilingual:
+#   ollama:
+#     host: http://localhost:11434
+#     default_model: llama3.1:8b
+#     timeout: 300
+#   transcript:
+#     preferred_languages:
+#       - en  # English (first choice)
+#       - es  # Spanish (second choice)
+#       - fr  # French (third choice)
+#       - de  # German (fourth choice)
+#       - ja  # Japanese (fifth choice)
+
+# --- Remote Ollama Server ---
+# remote:
+#   ollama:
+#     host: http://192.168.1.100:11434
+#     default_model: mixtral
+#     timeout: 600
+#   database:
+#     path: /mnt/nas/youtube_summaries/summaries.db
+#   logging:
+#     level: INFO
+#     file: /mnt/nas/youtube_summaries/app.log
+
+# ============================================================================
+# Notes
+# ============================================================================
+#
+# 1. Environment Variables vs YAML:
+#    - YAML config support is planned for future versions
+#    - Currently, use .env file or environment variables (YTS_* prefix)
+#    - Environment variables always take precedence over file config
+#
+# 2. Model Selection:
+#    - llama3.1:8b - Fast, good for most use cases (default)
+#    - llama3.1:70b - Slower but higher quality summaries
+#    - mistral - Fast alternative to Llama
+#    - mixtral - High-quality alternative
+#
+# 3. Temperature Guide:
+#    - 0.0-0.3: Very focused, deterministic (good for factual summaries)
+#    - 0.4-0.7: Balanced (recommended for general use)
+#    - 0.8-1.0: Creative, varied (good for diverse perspectives)
+#    - 1.1-2.0: Very creative (may be less accurate)
+#
+# 4. Max Length Guide:
+#    - 100-300: Quick bullet points
+#    - 300-600: Standard paragraph summary
+#    - 600-1000: Detailed summary
+#    - 1000+: Comprehensive analysis
+#
+# 5. Language Codes (ISO 639-1):
+#    - en: English
+#    - es: Spanish
+#    - fr: French
+#    - de: German
+#    - ja: Japanese
+#    - ko: Korean
+#    - zh: Chinese
+#    - pt: Portuguese
+#    - ru: Russian
+#    - ar: Arabic
+#    - See: https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes

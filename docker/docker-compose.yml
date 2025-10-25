@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # Ollama LLM inference service
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # YouTube Summarizer application
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: youtube_summarizer
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      - YTS_OLLAMA_HOST=http://ollama:11434
+      - YTS_DEFAULT_MODEL=llama3.1:8b
+      - YTS_DATABASE_PATH=/app/data/summaries.db
+      - YTS_LOG_LEVEL=INFO
+    volumes:
+      - ../data:/app/data
+      - ../config.yaml:/app/config.yaml:ro
+    stdin_open: true
+    tty: true
+    # Override CMD to keep container running for interactive use
+    command: tail -f /dev/null
+
+volumes:
+  ollama_models:
+    driver: local
