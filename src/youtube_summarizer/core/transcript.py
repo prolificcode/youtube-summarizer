@@ -126,7 +126,8 @@ class TranscriptService:
             >>> print(f"Auto-generated: {transcript.is_auto_generated}")
         """
         try:
-            transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+            api = YouTubeTranscriptApi()
+            transcript_list = api.list(video_id)
 
             # Determine target language
             target_lang = language or self.preferred_languages[0]
@@ -176,9 +177,9 @@ class TranscriptService:
             segments_raw = transcript_data.fetch()
             segments = [
                 TranscriptSegment(
-                    text=seg['text'],
-                    start=seg['start'],
-                    duration=seg.get('duration')
+                    text=seg.text,
+                    start=seg.start,
+                    duration=seg.duration
                 )
                 for seg in segments_raw
             ]
@@ -221,7 +222,8 @@ class TranscriptService:
             >>> print(f"Available languages: {', '.join(languages)}")
         """
         try:
-            transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+            api = YouTubeTranscriptApi()
+            transcript_list = api.list(video_id)
             return [t.language_code for t in transcript_list]
         except Exception:
             return []

@@ -93,8 +93,8 @@ class SummarizerService:
             True
         """
         try:
-            models = self.client.list()
-            available_models = [m['name'] for m in models.get('models', [])]
+            models_response = self.client.list()
+            available_models = [m.model for m in models_response.models]
 
             if model_name in available_models:
                 return True
