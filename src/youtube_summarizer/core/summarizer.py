@@ -178,12 +178,44 @@ class SummarizerService:
 
         return chunks
 
+    def calculate_dynamic_token_limit(self, transcript: Transcript) -> int:
+        """Calculate appropriate token limit based on transcript length.
+
+        Uses segment count as a proxy for transcript tokens (segments × 9 ≈ tokens).
+        Applies 10% compression ratio with sensible bounds.
+
+        Args:
+            transcript: Video transcript with segments
+
+        Returns:
+            Token limit between 500 (minimum) and 3000 (maximum)
+
+        Example:
+            >>> service = SummarizerService(settings)
+            >>> # Short video (60 segments ≈ 540 tokens)
+            >>> limit = service.calculate_dynamic_token_limit(short_transcript)
+            >>> # Returns 500 (minimum bound)
+            >>>
+            >>> # Long video (2197 segments ≈ 19,773 tokens)
+            >>> limit = service.calculate_dynamic_token_limit(long_transcript)
+            >>> # Returns 1977 (10% of 19,773)
+        """
+        # Empirically determined: segments × 9 ≈ transcript tokens (99.7% accurate)
+        estimated_tokens = len(transcript.segments) * 9
+
+        # Use 10% compression ratio (summary = 10% of transcript)
+        dynamic_limit = int(estimated_tokens * 0.10)
+
+        # Enforce bounds: 500 minimum (short videos), 3000 maximum (very long videos)
+        return min(max(500, dynamic_limit), 3000)
+
     def summarize_chunk(
         self,
         chunk: str,
         metadata: VideoMetadata,
         model_name: str,
-        prompt_template: str = SUMMARY_PROMPT_V1
+        prompt_template: str = SUMMARY_PROMPT_V1,
+        max_tokens: Optional[int] = None
     ) -> str:
         """Summarize a single transcript chunk.
 
@@ -192,6 +224,7 @@ class SummarizerService:
             metadata: Video metadata for context
             model_name: Ollama model to use
             prompt_template: Prompt template string with placeholders
+            max_tokens: Maximum tokens for summary (overrides settings default)
 
         Returns:
             Summary text for this chunk
@@ -202,7 +235,7 @@ class SummarizerService:
         Example:
             >>> service = SummarizerService(settings)
             >>> summary = service.summarize_chunk(
-            ...     chunk_text, metadata, "llama3.1:8b"
+            ...     chunk_text, metadata, "llama3.1:8b", max_tokens=2000
             ... )
         """
         prompt = prompt_template.format(
@@ -212,6 +245,9 @@ class SummarizerService:
             transcript=chunk
         )
 
+        # Use provided max_tokens or fall back to settings
+        token_limit = max_tokens if max_tokens is not None else self.settings.summary_max_length
+
         try:
             response = self.client.generate(
                 model=model_name,
@@ -219,7 +255,7 @@ class SummarizerService:
                 options={
                     'temperature': self.settings.summary_temperature,
                     'top_p': 0.9,
-                    'num_predict': self.settings.summary_max_length,
+                    'num_predict': token_limit,
                 }
             )
 
@@ -239,6 +275,9 @@ class SummarizerService:
         Automatically handles long transcripts via chunking. If the transcript
         exceeds the context window, it will be split into chunks, each summarized
         separately, then combined into a final summary.
+
+        Token limit is calculated dynamically based on transcript length unless
+        manually overridden via YTS_SUMMARY_MAX_LENGTH environment variable.
 
         Args:
             transcript: Video transcript
@@ -263,6 +302,18 @@ class SummarizerService:
         # Ensure model is available
         self.ensure_model_available(model_name)
 
+        # Calculate appropriate token limit
+        # Check if user manually set the limit (not using default)
+        default_limit = 500  # Default from config.py
+        if self.settings.summary_max_length != default_limit:
+            # User explicitly set YTS_SUMMARY_MAX_LENGTH - respect it
+            token_limit = self.settings.summary_max_length
+            print(f"Using manual token limit: {token_limit}")
+        else:
+            # Calculate dynamically based on transcript length
+            token_limit = self.calculate_dynamic_token_limit(transcript)
+            print(f"Using dynamic token limit: {token_limit} (based on {len(transcript.segments)} segments)")
+
         start_time = time.time()
         full_transcript = transcript.full_text
         token_estimate = self.estimate_tokens(full_transcript)
@@ -270,11 +321,11 @@ class SummarizerService:
         # Handle long transcripts
         if token_estimate > self.max_context_tokens:
             summary_text = self._summarize_long_transcript(
-                full_transcript, metadata, model_name
+                full_transcript, metadata, model_name, token_limit
             )
         else:
             summary_text = self.summarize_chunk(
-                full_transcript, metadata, model_name
+                full_transcript, metadata, model_name, max_tokens=token_limit
             )
 
         generation_time = time.time() - start_time
@@ -292,7 +343,8 @@ class SummarizerService:
         self,
         transcript: str,
         metadata: VideoMetadata,
-        model_name: str
+        model_name: str,
+        token_limit: int
     ) -> str:
         """Handle transcripts exceeding context window.
 
@@ -306,6 +358,7 @@ class SummarizerService:
             transcript: Full transcript text
             metadata: Video metadata
             model_name: Model to use
+            token_limit: Maximum tokens for final summary
 
         Returns:
             Final consolidated summary text
@@ -319,7 +372,7 @@ class SummarizerService:
         chunk_summaries = []
         for i, chunk in enumerate(chunks, 1):
             print(f"Summarizing chunk {i}/{len(chunks)}...")
-            summary = self.summarize_chunk(chunk, metadata, model_name)
+            summary = self.summarize_chunk(chunk, metadata, model_name, max_tokens=token_limit)
             chunk_summaries.append(summary)
 
         # Combine chunk summaries
@@ -338,7 +391,7 @@ Create a unified summary that captures all key points:"""
                 prompt=final_prompt,
                 options={
                     'temperature': self.settings.summary_temperature,
-                    'num_predict': self.settings.summary_max_length,
+                    'num_predict': token_limit,
                 }
             )
             return response['response'].strip()

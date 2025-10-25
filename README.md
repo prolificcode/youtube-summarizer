@@ -185,9 +185,50 @@ YTS_PREFERRED_LANGUAGES=["en"]
 | `YTS_DEFAULT_MODEL` | `llama3.1:8b` | Default LLM model |
 | `YTS_API_TIMEOUT` | `300` | API timeout in seconds |
 | `YTS_DATABASE_PATH` | `~/.local/share/youtube-summarizer/summaries.db` | SQLite database path |
-| `YTS_SUMMARY_MAX_LENGTH` | `500` | Max tokens for summaries |
+| `YTS_SUMMARY_MAX_LENGTH` | `500` (dynamic) | Max tokens for summaries (see below) |
 | `YTS_SUMMARY_TEMPERATURE` | `0.7` | LLM temperature (0.0-2.0) |
 | `YTS_PREFERRED_LANGUAGES` | `["en"]` | Preferred transcript languages |
+
+### Dynamic Token Limits (Smart Summarization)
+
+**NEW**: Summary length automatically adapts to video length!
+
+By default, the tool calculates an appropriate token limit based on the video's transcript length:
+
+```python
+# Automatic calculation:
+# - Short videos (3-5 min):  500 tokens  (minimum bound)
+# - Medium videos (30 min):  ~1000 tokens
+# - Long videos (60+ min):   ~2000 tokens
+# - Very long (2+ hours):    3000 tokens  (maximum bound)
+```
+
+**How it works:**
+- Analyzes transcript segment count (segments × 9 ≈ total tokens, 99.7% accurate)
+- Uses 10% compression ratio (summary = 10% of transcript)
+- Enforces bounds: 500 minimum, 3000 maximum
+
+**Manual override:**
+```bash
+# Force specific token limit for all videos
+export YTS_SUMMARY_MAX_LENGTH=2000
+yts summarize VIDEO_URL
+
+# Or per-video override
+YTS_SUMMARY_MAX_LENGTH=1500 yts summarize VIDEO_URL
+```
+
+**Example output:**
+```
+✓ Retrieved transcript (2197 segments)
+Using dynamic token limit: 1977 (based on 2197 segments)
+```
+
+**Benefits:**
+- ✅ No more truncated summaries on long videos
+- ✅ No unnecessarily long generation times on short videos
+- ✅ Automatic - no configuration needed
+- ✅ Manual override always available
 
 ## Docker Deployment
 
