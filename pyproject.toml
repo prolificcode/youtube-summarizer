@@ -48,10 +48,10 @@ dev = [
 yts = "youtube_summarizer.cli.app:main"
 
 [project.urls]
-Homepage = "https://github.com/yourusername/youtube-summarizer"
-Documentation = "https://github.com/yourusername/youtube-summarizer#readme"
-Repository = "https://github.com/yourusername/youtube-summarizer"
-Issues = "https://github.com/yourusername/youtube-summarizer/issues"
+Homepage = "https://github.com/prolificcode/youtube-summarizer"
+Documentation = "https://github.com/prolificcode/youtube-summarizer#readme"
+Repository = "https://github.com/prolificcode/youtube-summarizer"
+Issues = "https://github.com/prolificcode/youtube-summarizer/issues"
 
 [build-system]
 requires = ["setuptools>=68.0", "wheel"]

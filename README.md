@@ -62,7 +62,7 @@ ollama serve
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/youtube-summarizer.git
+git clone https://github.com/prolificcode/youtube-summarizer.git
 cd youtube-summarizer
 
 # Create virtual environment
@@ -332,8 +332,8 @@ MIT License - see [LICENSE](LICENSE) file for details
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/YOUR_USERNAME/youtube-summarizer/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/YOUR_USERNAME/youtube-summarizer/discussions)
+- **Issues**: [GitHub Issues](https://github.com/prolificcode/youtube-summarizer/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/prolificcode/youtube-summarizer/discussions)
 
 ---
 
