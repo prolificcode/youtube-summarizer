@@ -159,7 +159,7 @@ Create a `.env` file in the project root:
 YTS_OLLAMA_HOST=http://localhost:11434
 YTS_DEFAULT_MODEL=llama3.1:8b
 YTS_API_TIMEOUT=300
-YTS_DATABASE_PATH=./data/summaries.db
+YTS_DATABASE_PATH=~/.local/share/youtube-summarizer/summaries.db
 YTS_SUMMARY_MAX_LENGTH=500
 YTS_SUMMARY_TEMPERATURE=0.7
 YTS_PREFERRED_LANGUAGES=["en"]
@@ -172,7 +172,7 @@ YTS_PREFERRED_LANGUAGES=["en"]
 | `YTS_OLLAMA_HOST` | `http://localhost:11434` | Ollama API server URL |
 | `YTS_DEFAULT_MODEL` | `llama3.1:8b` | Default LLM model |
 | `YTS_API_TIMEOUT` | `300` | API timeout in seconds |
-| `YTS_DATABASE_PATH` | `./data/summaries.db` | SQLite database path |
+| `YTS_DATABASE_PATH` | `~/.local/share/youtube-summarizer/summaries.db` | SQLite database path |
 | `YTS_SUMMARY_MAX_LENGTH` | `500` | Max tokens for summaries |
 | `YTS_SUMMARY_TEMPERATURE` | `0.7` | LLM temperature (0.0-2.0) |
 | `YTS_PREFERRED_LANGUAGES` | `["en"]` | Preferred transcript languages |

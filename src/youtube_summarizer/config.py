@@ -25,6 +25,7 @@ Example:
 
 from pathlib import Path
 from typing import Optional
+import os
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -75,7 +76,7 @@ class Settings(BaseSettings):
 
     # Database configuration
     database_path: str = Field(
-        default="./data/summaries.db",
+        default=str(Path.home() / ".local" / "share" / "youtube-summarizer" / "summaries.db"),
         description="Path to SQLite database file",
     )
 
