@@ -52,9 +52,21 @@ ollama pull mistral
 ollama pull llama3.1:70b
 ```
 
+**Model Performance Comparison:**
+| Model | Size | Speed (3min video) | Quality | GPU VRAM |
+|-------|------|-------------------|---------|----------|
+| `llama3.1:8b` | 4.9GB | ~35 seconds | Good | 8GB+ |
+| `llama3.1:70b` | 42GB | ~3 minutes | Excellent | 16GB+ |
+
+**Recommendation:** Start with `llama3.1:8b` for daily use, switch to `70b` for important videos.
+
 ### 3. Start Ollama Server
 
 ```bash
+# Linux (systemd-based like Arch, Ubuntu, etc.)
+sudo systemctl start ollama
+
+# Or run manually (any OS)
 ollama serve
 ```
 
@@ -270,6 +282,13 @@ mypy src/
 
 **Solution**: Make sure Ollama is running:
 ```bash
+# Check if Ollama is running
+systemctl status ollama
+
+# Start Ollama (Linux with systemd)
+sudo systemctl start ollama
+
+# Or run manually
 ollama serve
 ```
 
@@ -291,10 +310,16 @@ ollama pull llama3.1:8b
 
 ### Slow summarization
 
+**Expected Times** (3-minute video):
+- `llama3.1:8b`: ~35 seconds with GPU
+- `llama3.1:70b`: ~3 minutes with GPU
+- CPU-only: 10-20x slower
+
 **Solutions**:
-1. Use a smaller model: `ollama pull mistral`
-2. Ensure GPU acceleration is working: `ollama ps`
-3. Reduce `YTS_SUMMARY_MAX_LENGTH` in configuration
+1. **Use faster model**: Switch from `70b` to `8b`: `ollama pull llama3.1:8b`
+2. **Verify GPU is active**: Run `nvidia-smi` during summarization (should show ollama using GPU)
+3. **Check Ollama logs**: `journalctl -u ollama -f` to see if GPU is detected
+4. **Reduce summary length**: Set `YTS_SUMMARY_MAX_LENGTH=300` for shorter summaries
 
 ## Roadmap
 
